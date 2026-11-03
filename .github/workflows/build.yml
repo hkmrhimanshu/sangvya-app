@@ -14,7 +14,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Unzip & Auto-Fix Project
+      - name: Unzip Project
         run: |
           for z in *.zip; do
             if [ -f "$z" ]; then
