@@ -14,8 +14,11 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Unzip Project
+      - name: Unzip & Auto-Fix Project
         run: |
+          if [ -f "Sangvya_Android_Project.zip" ] && [ -f "Sangvya-Android-Project.zip" ]; then
+            rm -f Sangvya_Android_Project.zip
+          fi
           for z in *.zip; do
             if [ -f "$z" ]; then
               unzip -o "$z"
@@ -24,6 +27,22 @@ jobs:
           if [ -d "Sangvya" ]; then
             cp -r Sangvya/* . || true
           fi
+          python3 -c "
+          patches = [
+              ('app/src/main/java/com/sangvya/app/ui/screens/GroupChatScreen.kt', 'import androidx.compose.ui.text.font.FontWeight'),
+              ('app/src/main/java/com/sangvya/app/ui/screens/LocationRadarScreen.kt', 'import androidx.compose.foundation.layout.size')
+          ]
+          for path, imp in patches:
+              try:
+                  with open(path, 'r') as f:
+                      content = f.read()
+                  if imp not in content:
+                      content = content.replace('package com.sangvya.app.ui.screens', 'package com.sangvya.app.ui.screens\n\n' + imp)
+                      with open(path, 'w') as f:
+                          f.write(content)
+              except Exception as e:
+                  print(e)
+          "
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
